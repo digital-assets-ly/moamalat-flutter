@@ -236,9 +236,20 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
         secureHash: widget.config.secureHash,
       );
 
-      final threeDSUrl = response.threeDSUrl;
-      final challengeRequired = response.challengeRequired == true;
-      if (threeDSUrl != null && threeDSUrl.isNotEmpty && challengeRequired) {
+      if (response.success != true) {
+        widget.onError(_gatewayError(response));
+        return;
+      }
+
+      if (response.challengeRequired == true) {
+        final threeDSUrl = response.threeDSUrl;
+        if (threeDSUrl == null || threeDSUrl.isEmpty) {
+          widget.onError(_gatewayError(
+            response,
+            fallbackMessage: '3DS challenge URL is missing',
+          ));
+          return;
+        }
         final result = await navigator.push<Object?>(
           ThreeDSWebViewScreen.route(
             service: service,
@@ -266,15 +277,15 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
         } else {
           widget.onCancel?.call();
         }
-      } else if (response.success == true) {
-        widget.onSuccess(response);
-      } else {
-        widget.onError(MoamalatPaymentError(
-          response.message?.isNotEmpty == true
-              ? response.message!
-              : 'Payment failed',
-        ));
+        return;
       }
+
+      if (response.actionCode != '00') {
+        widget.onError(_gatewayError(response));
+        return;
+      }
+
+      widget.onSuccess(response);
     } on MoamalatPaymentError catch (error) {
       if (mounted) widget.onError(error);
     } catch (error) {
@@ -287,6 +298,16 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
       if (ownsService) service.close();
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  MoamalatPaymentError _gatewayError(
+    PayByCardResponse response, {
+    String fallbackMessage = '',
+  }) {
+    final message = response.message;
+    return MoamalatPaymentError(
+      message == null || message.isEmpty ? fallbackMessage : message,
+    );
   }
 
   @override

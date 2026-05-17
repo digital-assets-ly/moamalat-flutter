@@ -119,6 +119,10 @@ automatically pushes a full-screen WebView that:
 You can disable the post-3DS `CheckTxnStatus` call by passing
 `verifyTransactionStatusAfter3DS: false` to `MoamalatCardPaymentForm`.
 
+For immediate non-3DS responses, the form only treats the payment as approved
+when `Success == true` and `ActionCode == "00"`. Failed `PayByCard` responses
+do not open 3DS, even if the gateway also returns challenge fields.
+
 ## Playground
 
 A runnable example app lives in [`example/`](example/). Plug in your test
