@@ -127,11 +127,19 @@ merchant credentials and exercise the widget on a simulator or device:
 ```sh
 cd example
 flutter pub get
-flutter run \
-  --dart-define=MOAMALAT_MERCHANT_ID=... \
-  --dart-define=MOAMALAT_TERMINAL_ID=... \
-  --dart-define=MOAMALAT_SECURE_HASH=...
+flutter run
 ```
 
-The `--dart-define` flags are optional; the playground also lets you type
+Create `.env.dev` and `.env.prod` files in the `example/` directory with your credentials:
+
+```
+MOAMALAT_MERCHANT_ID=10081014649
+MOAMALAT_TERMINAL_ID=99179395
+MOAMALAT_SECURE_HASH=
+DEMO_CARD_NUMBER=6395043835180860
+DEMO_CARD_HOLDER=moamalat pay
+DEMO_EXPIRY=0127
+```
+
+The environment files are optional; the playground also lets you type
 credentials directly into the form.
