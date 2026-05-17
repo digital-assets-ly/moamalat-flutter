@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:dio/dio.dart';
+
 import '../config.dart';
+import '../errors.dart';
 import '../models/check_transaction_status.dart';
 import '../models/pay_by_card.dart';
 import '../models/three_ds_result.dart';
 import '../utils/json_coercion.dart';
 import 'api_endpoint.dart';
-import 'payment_http_client.dart';
 
 /// High-level facade over the Moamalat PayLink REST endpoints.
 ///
@@ -17,12 +19,12 @@ class MoamalatPaymentService {
   static const _logName = 'MoamalatPaymentService';
 
   final MoamalatPaymentConfig config;
-  final MoamalatHttpClient _httpClient;
+  final Dio _dio;
   final bool _ownsClient;
 
-  MoamalatPaymentService(this.config, {MoamalatHttpClient? httpClient})
-      : _httpClient = httpClient ?? MoamalatHttpClient(timeout: config.timeout),
-        _ownsClient = httpClient == null {
+  MoamalatPaymentService(this.config, {Dio? dio})
+      : _dio = dio ?? Dio(),
+        _ownsClient = dio == null {
     developer.log(
       'MoamalatPaymentService initialized (environment=${config.environment}, merchantId=${config.merchantId}, terminalId=${config.terminalId}, amount=${config.amount}, returnUrl=${config.resolvedReturnUrl})',
       name: _logName,
@@ -56,7 +58,7 @@ class MoamalatPaymentService {
     );
     final uri = config.uriFor(ApiEndpoint.payByCard);
     _debug('payByCard request uri=$uri parameters=${parameters.toMap()}');
-    final json = await _httpClient.postJson(
+    final json = await _postJson(
       uri,
       parameters.toMap(),
     );
@@ -89,7 +91,7 @@ class MoamalatPaymentService {
     final uri = config.uriFor(ApiEndpoint.checkTransactionStatus);
     _debug(
         'checkTransactionStatus request uri=$uri parameters=${parameters.toMap()}');
-    final json = await _httpClient.postJson(
+    final json = await _postJson(
       uri,
       parameters.toMap(),
     );
@@ -179,12 +181,81 @@ class MoamalatPaymentService {
     );
   }
 
+  Future<Map<String, dynamic>> _postJson(
+    Uri uri,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _post(uri, body);
+    final statusCode = response.statusCode ?? 0;
+    if (statusCode < 200 || statusCode > 299) {
+      final responseBody = _responseBody(response.data);
+      throw MoamalatPaymentError(
+        responseBody.isEmpty
+            ? response.statusMessage ?? 'HTTP request failed'
+            : responseBody,
+        statusCode: statusCode,
+      );
+    }
+    final decoded = _decodeJson(response.data);
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    throw const MoamalatPaymentError(
+      'Expected JSON object in PayByCard response',
+    );
+  }
+
+  Future<Response<Object?>> _post(Uri uri, Map<String, dynamic> body) async {
+    try {
+      return await _dio
+          .postUri<Object?>(
+            uri,
+            data: body,
+            options: Options(
+              contentType: Headers.jsonContentType,
+              headers: const {'Accept-Language': 'en'},
+              receiveTimeout: config.timeout,
+              responseType: ResponseType.json,
+              sendTimeout: config.timeout,
+              validateStatus: (_) => true,
+            ),
+          )
+          .timeout(config.timeout);
+    } on Object catch (error) {
+      throw MoamalatPaymentError(
+        'Unable to complete PayByCard request',
+        cause: error,
+      );
+    }
+  }
+
+  String _responseBody(Object? data) {
+    if (data == null) return '';
+    if (data is String) return data;
+    try {
+      return jsonEncode(data);
+    } on Object {
+      return data.toString();
+    }
+  }
+
+  Object? _decodeJson(Object? data) {
+    if (data is! String) return data;
+    try {
+      return jsonDecode(data);
+    } on Object catch (error) {
+      throw MoamalatPaymentError(
+        'Error decoding PayByCard response',
+        cause: error,
+      );
+    }
+  }
+
   void close() {
     if (_ownsClient) {
-      _debug('close called; closing owned HTTP client');
-      _httpClient.close();
+      _debug('close called; closing owned Dio client');
+      _dio.close();
     } else {
-      _debug('close called; HTTP client is externally owned, not closing');
+      _debug('close called; Dio client is externally owned, not closing');
     }
   }
 }

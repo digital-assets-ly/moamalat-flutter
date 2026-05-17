@@ -1,41 +1,54 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:digital_assets_moamalat_pay/src/errors.dart';
-// ignore: implementation_imports
-import 'package:digital_assets_moamalat_pay/src/services/payment_http_client.dart';
+import 'package:digital_assets_moamalat_pay/digital_assets_moamalat_pay.dart';
 
 void main() {
-  group('MoamalatHttpClient.postJson', () {
-    test('posts JSON with gateway headers and returns a JSON object', () async {
+  group('MoamalatPaymentService Dio requests', () {
+    test('posts JSON with gateway headers and returns a typed response',
+        () async {
       final dio = Dio()
         ..interceptors.add(
           InterceptorsWrapper(
             onRequest: (options, handler) {
               expect(options.method, 'POST');
-              expect(options.uri, Uri.parse('https://example.com/PayByCard'));
-              expect(options.data, <String, dynamic>{'AmountTrxn': '250'});
+              expect(options.uri, Uri.parse(_payByCardUri));
               expect(options.contentType, Headers.jsonContentType);
               expect(options.headers['Accept-Language'], 'en');
+              expect(
+                options.data,
+                containsPair('AmountTrxn', '250'),
+              );
+              expect(
+                options.data,
+                containsPair('PAN', '4111111111111111'),
+              );
               handler.resolve(
                 Response<Object?>(
                   requestOptions: options,
                   statusCode: 200,
-                  data: <String, dynamic>{'Success': true},
+                  data: <String, dynamic>{
+                    'Success': true,
+                    'Message': 'OK',
+                  },
                 ),
               );
             },
           ),
         );
-      final client = MoamalatHttpClient(client: dio);
-      addTearDown(client.close);
+      final service = MoamalatPaymentService(_config, dio: dio);
+      addTearDown(service.close);
 
-      final json = await client.postJson(
-        Uri.parse('https://example.com/PayByCard'),
-        <String, dynamic>{'AmountTrxn': '250'},
+      final response = await service.payByCard(
+        cardNumber: '4111111111111111',
+        cardHolderName: 'Test User',
+        expiryDate: '0127',
+        cvv: '123',
+        secureHash: 'hash',
       );
 
-      expect(json, <String, dynamic>{'Success': true});
+      expect(response.success, true);
+      expect(response.message, 'OK');
     });
 
     test('decodes string JSON responses', () async {
@@ -53,15 +66,18 @@ void main() {
             },
           ),
         );
-      final client = MoamalatHttpClient(client: dio);
-      addTearDown(client.close);
+      final service = MoamalatPaymentService(_config, dio: dio);
+      addTearDown(service.close);
 
-      final json = await client.postJson(
-        Uri.parse('https://example.com/PayByCard'),
-        <String, dynamic>{},
+      final response = await service.payByCard(
+        cardNumber: '4111111111111111',
+        cardHolderName: 'Test User',
+        expiryDate: '0127',
+        cvv: '123',
+        secureHash: 'hash',
       );
 
-      expect(json, <String, dynamic>{'Success': true});
+      expect(response.success, true);
     });
 
     test('throws payment errors for non-2xx responses', () async {
@@ -80,13 +96,16 @@ void main() {
             },
           ),
         );
-      final client = MoamalatHttpClient(client: dio);
-      addTearDown(client.close);
+      final service = MoamalatPaymentService(_config, dio: dio);
+      addTearDown(service.close);
 
       await expectLater(
-        client.postJson(
-          Uri.parse('https://example.com/PayByCard'),
-          <String, dynamic>{},
+        service.payByCard(
+          cardNumber: '4111111111111111',
+          cardHolderName: 'Test User',
+          expiryDate: '0127',
+          cvv: '123',
+          secureHash: 'hash',
         ),
         throwsA(
           isA<MoamalatPaymentError>()
@@ -111,13 +130,16 @@ void main() {
             },
           ),
         );
-      final client = MoamalatHttpClient(client: dio);
-      addTearDown(client.close);
+      final service = MoamalatPaymentService(_config, dio: dio);
+      addTearDown(service.close);
 
       await expectLater(
-        client.postJson(
-          Uri.parse('https://example.com/PayByCard'),
-          <String, dynamic>{},
+        service.payByCard(
+          cardNumber: '4111111111111111',
+          cardHolderName: 'Test User',
+          expiryDate: '0127',
+          cvv: '123',
+          secureHash: 'hash',
         ),
         throwsA(
           isA<MoamalatPaymentError>().having(
@@ -130,3 +152,16 @@ void main() {
     });
   });
 }
+
+const _payByCardUri =
+    'https://tnpg.moamalat.net/cube/PayLink.svc/api/PayByCard';
+
+const _config = MoamalatPaymentConfig(
+  environment: MoamalatEnvironment.testing,
+  merchantId: 'M',
+  terminalId: 'T',
+  amount: 250,
+  currencyCode: 434,
+  secureHash: 'hash',
+  transactionDate: '240307090501023',
+);
