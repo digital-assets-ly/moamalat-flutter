@@ -1,12 +1,8 @@
-enum ApiEndpoint { payByCard, checkTransactionStatus }
+enum ApiEndpoint {
+  payByCard('/PayByCard'),
+  checkTransactionStatus('/CheckTxnStatus');
 
-extension ApiEndpointPath on ApiEndpoint {
-  String get path {
-    switch (this) {
-      case ApiEndpoint.payByCard:
-        return '/PayByCard';
-      case ApiEndpoint.checkTransactionStatus:
-        return '/CheckTxnStatus';
-    }
-  }
+  const ApiEndpoint(this.path);
+
+  final String path;
 }

@@ -1,40 +1,36 @@
 import 'dart:convert';
-import 'dart:io' as io;
+
+import 'package:dio/dio.dart';
 
 import '../errors.dart';
 
-/// Thin wrapper around `dart:io.HttpClient` that POSTs JSON bodies and decodes
-/// JSON responses for the Moamalat PayLink endpoints. Renamed from `HttpClient`
-/// in the prototype so it doesn't collide with `dart:io.HttpClient` when
-/// imported alongside it.
+/// Thin Dio wrapper that POSTs JSON bodies and decodes JSON responses for the
+/// Moamalat PayLink endpoints.
 class MoamalatHttpClient {
   final Duration timeout;
-  final io.HttpClient _client;
+  final Dio _client;
 
   MoamalatHttpClient({
     this.timeout = const Duration(seconds: 10),
-    io.HttpClient? client,
-  }) : _client = client ?? io.HttpClient();
+    Dio? client,
+  }) : _client = client ?? Dio();
 
   Future<Map<String, dynamic>> postJson(
     Uri uri,
     Map<String, dynamic> body,
   ) async {
-    final request = await _openPost(uri);
-    final payload = utf8.encode(jsonEncode(body));
-    request.headers.set(io.HttpHeaders.contentTypeHeader, 'application/json');
-    request.headers.set(io.HttpHeaders.acceptLanguageHeader, 'en');
-    request.contentLength = payload.length;
-    request.add(payload);
-    final response = await _close(request);
-    final responseBody = await utf8.decoder.bind(response).join();
-    if (response.statusCode < 200 || response.statusCode > 299) {
+    final response = await _post(uri, body);
+    final statusCode = response.statusCode ?? 0;
+    if (statusCode < 200 || statusCode > 299) {
+      final responseBody = _responseBody(response.data);
       throw MoamalatPaymentError(
-        responseBody.isEmpty ? response.reasonPhrase : responseBody,
-        statusCode: response.statusCode,
+        responseBody.isEmpty
+            ? response.statusMessage ?? 'HTTP request failed'
+            : responseBody,
+        statusCode: statusCode,
       );
     }
-    final decoded = _decodeJson(responseBody);
+    final decoded = _decodeJson(response.data);
     if (decoded is Map<String, dynamic>) return decoded;
     if (decoded is Map) return Map<String, dynamic>.from(decoded);
     throw const MoamalatPaymentError(
@@ -42,20 +38,22 @@ class MoamalatHttpClient {
     );
   }
 
-  Future<io.HttpClientRequest> _openPost(Uri uri) async {
+  Future<Response<Object?>> _post(Uri uri, Map<String, dynamic> body) async {
     try {
-      return await _client.postUrl(uri).timeout(timeout);
-    } on Object catch (error) {
-      throw MoamalatPaymentError(
-        'Unable to open PayByCard request',
-        cause: error,
-      );
-    }
-  }
-
-  Future<io.HttpClientResponse> _close(io.HttpClientRequest request) async {
-    try {
-      return await request.close().timeout(timeout);
+      return await _client
+          .postUri<Object?>(
+            uri,
+            data: body,
+            options: Options(
+              contentType: Headers.jsonContentType,
+              headers: const {'Accept-Language': 'en'},
+              receiveTimeout: timeout,
+              responseType: ResponseType.json,
+              sendTimeout: timeout,
+              validateStatus: (_) => true,
+            ),
+          )
+          .timeout(timeout);
     } on Object catch (error) {
       throw MoamalatPaymentError(
         'Unable to complete PayByCard request',
@@ -64,9 +62,20 @@ class MoamalatHttpClient {
     }
   }
 
-  Object? _decodeJson(String responseBody) {
+  String _responseBody(Object? data) {
+    if (data == null) return '';
+    if (data is String) return data;
     try {
-      return jsonDecode(responseBody);
+      return jsonEncode(data);
+    } on Object {
+      return data.toString();
+    }
+  }
+
+  Object? _decodeJson(Object? data) {
+    if (data is! String) return data;
+    try {
+      return jsonDecode(data);
     } on Object catch (error) {
       throw MoamalatPaymentError(
         'Error decoding PayByCard response',

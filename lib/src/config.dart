@@ -1,16 +1,12 @@
 import 'services/api_endpoint.dart';
 
-enum MoamalatEnvironment { production, testing }
+enum MoamalatEnvironment {
+  production('https://npg.moamalat.net/'),
+  testing('https://tnpg.moamalat.net/');
 
-extension MoamalatEnvironmentUrls on MoamalatEnvironment {
-  String get baseUrl {
-    switch (this) {
-      case MoamalatEnvironment.production:
-        return 'https://npg.moamalat.net/';
-      case MoamalatEnvironment.testing:
-        return 'https://tnpg.moamalat.net/';
-    }
-  }
+  const MoamalatEnvironment(this.baseUrl);
+
+  final String baseUrl;
 }
 
 class MoamalatPaymentConfig {
