@@ -1,4 +1,4 @@
-import 'services/api_endpoint.dart';
+import 'services/payment_service.dart';
 
 enum MoamalatEnvironment {
   production('https://npg.moamalat.net/'),

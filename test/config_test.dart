@@ -1,8 +1,7 @@
+import 'package:digital_assets_moamalat_pay/src/services/payment_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:digital_assets_moamalat_pay/digital_assets_moamalat_pay.dart';
-// ignore: implementation_imports
-import 'package:digital_assets_moamalat_pay/src/services/api_endpoint.dart';
 
 void main() {
   group('MoamalatPaymentConfig', () {

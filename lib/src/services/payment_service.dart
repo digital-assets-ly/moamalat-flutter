@@ -9,7 +9,15 @@ import '../models/check_transaction_status.dart';
 import '../models/pay_by_card.dart';
 import '../models/three_ds_result.dart';
 import '../utils/json_coercion.dart';
-import 'api_endpoint.dart';
+
+enum ApiEndpoint {
+  payByCard('/PayByCard'),
+  checkTransactionStatus('/CheckTxnStatus');
+
+  const ApiEndpoint(this.path);
+
+  final String path;
+}
 
 /// High-level facade over the Moamalat PayLink REST endpoints.
 ///
