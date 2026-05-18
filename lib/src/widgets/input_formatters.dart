@@ -45,14 +45,18 @@ class ExpiryDateInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final clamped = digits.length > 4 ? digits.substring(0, 4) : digits;
-    final text = clamped.length >= 3
-        ? '${clamped.substring(2)}/${clamped.substring(0, 2)}'
-        : clamped;
-    return TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
+    final digitsOnly = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final limited =
+        digitsOnly.length > 4 ? digitsOnly.substring(0, 4) : digitsOnly;
+
+    String formatted = limited;
+    if (limited.length >= 3) {
+      formatted = '${limited.substring(0, 2)}/${limited.substring(2)}';
+    }
+
+    return newValue.copyWith(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
