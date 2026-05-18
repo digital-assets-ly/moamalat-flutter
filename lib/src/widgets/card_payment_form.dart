@@ -17,8 +17,8 @@ import 'three_ds_webview_screen.dart';
 /// the optional [onCancel].
 class MoamalatCardPaymentForm extends StatefulWidget {
   final MoamalatPaymentConfig config;
-  final void Function(PayByCardResponse response) onSuccess;
-  final void Function(MoamalatPaymentError error) onError;
+  final ValueChanged<PayByCardResponse> onSuccess;
+  final ValueChanged<MoamalatPaymentError> onError;
   final VoidCallback? onCancel;
 
   /// Optional pre-built service. When provided the widget will NOT call
@@ -92,27 +92,22 @@ class MoamalatCardPaymentForm extends StatefulWidget {
 
 class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _cardNumberController;
-  late final TextEditingController _cardHolderController;
-  late final TextEditingController _expiryController;
-  late final TextEditingController _cvvController;
+  late final TextEditingController _cardNumberController =
+      TextEditingController(text: _formatPanInitial(widget.initialCardNumber));
+  late final TextEditingController _cardHolderController =
+      TextEditingController(text: widget.initialCardHolderName ?? '');
+  late final TextEditingController _expiryController = TextEditingController(
+      text: _formatExpiryInitial(widget.initialExpiryDate));
+  late final TextEditingController _cvvController =
+      TextEditingController(text: widget.initialCvv ?? '');
   bool _submitting = false;
   bool _isNumoCard = false;
 
   @override
   void initState() {
     super.initState();
-    _cardNumberController = TextEditingController(
-        text: _formatPanInitial(widget.initialCardNumber));
-    _cardHolderController =
-        TextEditingController(text: widget.initialCardHolderName ?? '');
-    _expiryController = TextEditingController(
-        text: _formatExpiryInitial(widget.initialExpiryDate));
-    _cvvController = TextEditingController(text: widget.initialCvv ?? '');
-
     // Initialize card type detection
     _updateCardType(_cardNumberController.text);
-
     // Listen to card number changes to update card type
     _cardNumberController.addListener(_onCardNumberChanged);
   }
@@ -319,6 +314,7 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16,
           children: [
             TextFormField(
               controller: _cardNumberController,
@@ -328,7 +324,6 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
               inputFormatters: [CardNumberInputFormatter()],
               validator: _validateCardNumber,
             ),
-            const SizedBox(height: 12),
             TextFormField(
               controller: _cardHolderController,
               decoration: _decoration(widget.cardHolderNameLabel),
@@ -339,9 +334,8 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
               ],
               validator: _validateCardHolder,
             ),
-            const SizedBox(height: 12),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
               children: [
                 Expanded(
                   child: TextFormField(
@@ -355,7 +349,6 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
                     validator: _validateExpiry,
                   ),
                 ),
-                const SizedBox(width: 12),
                 if (!_isNumoCard)
                   Expanded(
                     child: TextFormField(
@@ -375,17 +368,19 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
                   ),
               ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: widget.payButtonStyle,
-              onPressed: _submitting ? null : _submit,
-              child: _submitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(widget.payButtonLabel),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: ElevatedButton(
+                style: widget.payButtonStyle,
+                onPressed: _submitting ? null : _submit,
+                child: _submitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(widget.payButtonLabel),
+              ),
             ),
           ],
         ),

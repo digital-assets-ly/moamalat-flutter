@@ -27,12 +27,16 @@ Future<PayByCardResponse?> showMoamalatPaymentSheet(
   String? initialExpiryDate,
   String? initialCvv,
 }) async {
-  final result = await Navigator.of(context).push<Object?>(
-    MaterialPageRoute<Object?>(
-      fullscreenDialog: true,
-      builder: (_) => _PaymentSheetScreen(
-        config: config,
-        title: title,
+  final result = await showModalBottomSheet<Object?>(
+    context: context,
+    isScrollControlled: true,
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+    ),
+    clipBehavior: Clip.antiAlias,
+    builder: (_) => _PaymentSheetScreen(
+      config: config,
+      title: title,
         padding: padding,
         inputDecoration: inputDecoration,
         payButtonStyle: payButtonStyle,
@@ -46,7 +50,6 @@ Future<PayByCardResponse?> showMoamalatPaymentSheet(
         initialExpiryDate: initialExpiryDate,
         initialCvv: initialCvv,
       ),
-    ),
   );
   if (result is PayByCardResponse) return result;
   if (result is MoamalatPaymentError) throw result;
@@ -89,27 +92,25 @@ class _PaymentSheetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: padding,
-          child: MoamalatCardPaymentForm(
-            config: config,
-            inputDecoration: inputDecoration,
-            payButtonStyle: payButtonStyle,
-            payButtonLabel: payButtonLabel,
-            verifyTransactionStatusAfter3DS: verifyTransactionStatusAfter3DS,
-            isNaps: isNaps,
-            isOoredoo: isOoredoo,
-            cvvRequired: cvvRequired,
-            initialCardNumber: initialCardNumber,
-            initialCardHolderName: initialCardHolderName,
-            initialExpiryDate: initialExpiryDate,
-            initialCvv: initialCvv,
-            onSuccess: (response) => Navigator.of(context).pop(response),
-            onError: (error) => Navigator.of(context).pop(error),
-            onCancel: () => Navigator.of(context).pop(),
-          ),
+      appBar: AppBar(title: Text(title), leading: const CloseButton()),
+      body: SingleChildScrollView(
+        padding: padding,
+        child: MoamalatCardPaymentForm(
+          config: config,
+          inputDecoration: inputDecoration,
+          payButtonStyle: payButtonStyle,
+          payButtonLabel: payButtonLabel,
+          verifyTransactionStatusAfter3DS: verifyTransactionStatusAfter3DS,
+          isNaps: isNaps,
+          isOoredoo: isOoredoo,
+          cvvRequired: cvvRequired,
+          initialCardNumber: initialCardNumber,
+          initialCardHolderName: initialCardHolderName,
+          initialExpiryDate: initialExpiryDate,
+          initialCvv: initialCvv,
+          onSuccess: (response) => Navigator.of(context).pop(response),
+          onError: (error) => Navigator.of(context).pop(error),
+          onCancel: () => Navigator.of(context).pop(),
         ),
       ),
     );
