@@ -2,7 +2,7 @@ name: digital_assets_moamalat_pay
 description: >-
   Unofficial Flutter helper around the Moamalat payment gateway, built by
   Digital Assets. Not affiliated with or endorsed by Moamalat. Wraps the
-  legacy PayLink REST endpoints (PayByCard, CheckTxnStatus) and ships an
+  legacy PayLink REST endpoint (PayByCard) and ships an
   optional Material card-payment widget with built-in 3DS / OTP handling.
 version: 0.1.0
 homepage: https://github.com/digital-assets/moamalat-flutter

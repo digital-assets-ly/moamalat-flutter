@@ -2,10 +2,9 @@
 
 Initial release.
 
-- `MoamalatPaymentService` facade for `PayByCard` and `CheckTxnStatus` against
+- `MoamalatPaymentService` facade for `PayByCard` against
   the Moamalat PayLink REST gateway (testing + production environments).
 - Typed request / response models: `PayByCardParameters`, `PayByCardResponse`,
-  `CheckTransactionStatusParameters`, `CheckTransactionStatusResponse`,
   `ThreeDSChallengeResult`.
 - `MoamalatCardPaymentForm` Material widget with PAN / cardholder / expiry /
   CVV fields, Luhn validation, and built-in 3DS / OTP handling via an embedded

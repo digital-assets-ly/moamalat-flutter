@@ -9,8 +9,6 @@ export 'src/config.dart' show MoamalatEnvironment, MoamalatPaymentConfig;
 export 'src/errors.dart' show MoamalatPaymentError;
 
 // Models
-export 'src/models/check_transaction_status.dart'
-    show CheckTransactionStatusParameters, CheckTransactionStatusResponse;
 export 'src/models/pay_by_card.dart'
     show PayByCardParameters, PayByCardResponse;
 export 'src/models/three_ds_result.dart' show ThreeDSChallengeResult;

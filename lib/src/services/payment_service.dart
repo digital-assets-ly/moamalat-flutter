@@ -5,14 +5,12 @@ import 'package:dio/dio.dart';
 
 import '../config.dart';
 import '../errors.dart';
-import '../models/check_transaction_status.dart';
 import '../models/pay_by_card.dart';
 import '../models/three_ds_result.dart';
 import '../utils/json_coercion.dart';
 
 enum ApiEndpoint {
-  payByCard('/PayByCard'),
-  checkTransactionStatus('/CheckTxnStatus');
+  payByCard('/PayByCard');
 
   const ApiEndpoint(this.path);
 
@@ -81,35 +79,6 @@ class MoamalatPaymentService {
     return response;
   }
 
-  Future<CheckTransactionStatusResponse> checkTransactionStatus({
-    bool isNaps = true,
-    bool isOoredoo = false,
-    String extraInfo = '',
-    required String secureHash,
-  }) async {
-    _debug(
-        'checkTransactionStatus called (isNaps=$isNaps, isOoredoo=$isOoredoo, extraInfo=$extraInfo)');
-    final parameters = CheckTransactionStatusParameters.fromConfig(
-      config: config,
-      secureHash: secureHash,
-      isNaps: isNaps,
-      isOoredoo: isOoredoo,
-      extraInfo: extraInfo,
-    );
-    final uri = config.uriFor(ApiEndpoint.checkTransactionStatus);
-    _debug(
-        'checkTransactionStatus request uri=$uri parameters=${parameters.toMap()}');
-    final json = await _postJson(
-      uri,
-      parameters.toMap(),
-    );
-    _debug('checkTransactionStatus response json=$json');
-    final response = CheckTransactionStatusResponse.fromJson(json);
-    _debug(
-        'checkTransactionStatus parsed response (success=${response.success}, isPaid=${response.isPaid}, referenceId=${response.referenceId}, transactionId=${response.transactionId})');
-    return response;
-  }
-
   /// Whether the given navigation URL is the gateway redirecting back to the
   /// merchant return URL after a 3DS challenge.
   bool shouldHandleThreeDSRedirect(Uri redirectUri) {
@@ -151,42 +120,21 @@ class MoamalatPaymentService {
     return response;
   }
 
-  /// End-to-end 3DS-redirect handling: parses the return URL, optionally calls
-  /// `CheckTxnStatus` to confirm payment, and returns a typed result. Returns
+  /// End-to-end 3DS-redirect handling: parses the return URL and returns a typed result. Returns
   /// `null` if the URL is not a 3DS redirect.
   Future<ThreeDSChallengeResult?> handleThreeDSRedirect(
-    Uri redirectUri, {
-    bool verifyTransactionStatus = true,
-    bool isNaps = true,
-    bool isOoredoo = false,
-    String extraInfo = '',
-    required String secureHash,
-  }) async {
-    _debug(
-        'handleThreeDSRedirect called (redirectUri=$redirectUri, verifyTransactionStatus=$verifyTransactionStatus, isNaps=$isNaps, isOoredoo=$isOoredoo, extraInfo=$extraInfo)');
+    Uri redirectUri,
+  ) async {
+    _debug('handleThreeDSRedirect called (redirectUri=$redirectUri)');
     final redirectResponse = parseThreeDSRedirect(redirectUri);
     if (redirectResponse == null) {
       _debug(
           'handleThreeDSRedirect returning null because parseThreeDSRedirect returned null');
       return null;
     }
-    if (redirectResponse.success != true || !verifyTransactionStatus) {
-      _debug(
-          'handleThreeDSRedirect returning without transaction status check (success=${redirectResponse.success}, verifyTransactionStatus=$verifyTransactionStatus)');
-      return ThreeDSChallengeResult(redirectResponse: redirectResponse);
-    }
-    final status = await checkTransactionStatus(
-      isNaps: isNaps,
-      isOoredoo: isOoredoo,
-      extraInfo: extraInfo,
-      secureHash: secureHash,
-    );
     _debug(
-        'handleThreeDSRedirect checkTransactionStatus returned (success=${status.success}, isPaid=${status.isPaid}, transactionId=${status.transactionId})');
-    return ThreeDSChallengeResult(
-      redirectResponse: redirectResponse,
-      transactionStatus: status,
-    );
+        'handleThreeDSRedirect returning redirectResponse (success=${redirectResponse.success})');
+    return ThreeDSChallengeResult(redirectResponse: redirectResponse);
   }
 
   Future<Map<String, dynamic>> _postJson(
@@ -241,7 +189,7 @@ class MoamalatPaymentService {
     if (data is String) return data;
     try {
       return jsonEncode(data);
-    } catch(_) {
+    } catch (_) {
       return data.toString();
     }
   }
@@ -250,7 +198,7 @@ class MoamalatPaymentService {
     if (data is! String) return data;
     try {
       return jsonDecode(data);
-    }  catch (error) {
+    } catch (error) {
       throw MoamalatPaymentError(
         'Error decoding PayByCard response',
         cause: error,

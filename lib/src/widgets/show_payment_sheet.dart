@@ -18,9 +18,6 @@ Future<PayByCardResponse?> showMoamalatPaymentSheet(
   InputDecoration? inputDecoration,
   ButtonStyle? payButtonStyle,
   String payButtonLabel = 'Pay',
-  bool verifyTransactionStatusAfter3DS = false,
-  bool isNaps = true,
-  bool isOoredoo = false,
   bool cvvRequired = true,
   String? initialCardNumber,
   String? initialCardHolderName,
@@ -37,19 +34,16 @@ Future<PayByCardResponse?> showMoamalatPaymentSheet(
     builder: (_) => _PaymentSheetScreen(
       config: config,
       title: title,
-        padding: padding,
-        inputDecoration: inputDecoration,
-        payButtonStyle: payButtonStyle,
-        payButtonLabel: payButtonLabel,
-        verifyTransactionStatusAfter3DS: verifyTransactionStatusAfter3DS,
-        isNaps: isNaps,
-        isOoredoo: isOoredoo,
-        cvvRequired: cvvRequired,
-        initialCardNumber: initialCardNumber,
-        initialCardHolderName: initialCardHolderName,
-        initialExpiryDate: initialExpiryDate,
-        initialCvv: initialCvv,
-      ),
+      padding: padding,
+      inputDecoration: inputDecoration,
+      payButtonStyle: payButtonStyle,
+      payButtonLabel: payButtonLabel,
+      cvvRequired: cvvRequired,
+      initialCardNumber: initialCardNumber,
+      initialCardHolderName: initialCardHolderName,
+      initialExpiryDate: initialExpiryDate,
+      initialCvv: initialCvv,
+    ),
   );
   if (result is PayByCardResponse) return result;
   if (result is MoamalatPaymentError) throw result;
@@ -63,9 +57,6 @@ class _PaymentSheetScreen extends StatelessWidget {
   final InputDecoration? inputDecoration;
   final ButtonStyle? payButtonStyle;
   final String payButtonLabel;
-  final bool verifyTransactionStatusAfter3DS;
-  final bool isNaps;
-  final bool isOoredoo;
   final bool cvvRequired;
   final String? initialCardNumber;
   final String? initialCardHolderName;
@@ -79,9 +70,6 @@ class _PaymentSheetScreen extends StatelessWidget {
     required this.inputDecoration,
     required this.payButtonStyle,
     required this.payButtonLabel,
-    required this.verifyTransactionStatusAfter3DS,
-    required this.isNaps,
-    required this.isOoredoo,
     required this.cvvRequired,
     required this.initialCardNumber,
     required this.initialCardHolderName,
@@ -100,9 +88,6 @@ class _PaymentSheetScreen extends StatelessWidget {
           inputDecoration: inputDecoration,
           payButtonStyle: payButtonStyle,
           payButtonLabel: payButtonLabel,
-          verifyTransactionStatusAfter3DS: verifyTransactionStatusAfter3DS,
-          isNaps: isNaps,
-          isOoredoo: isOoredoo,
           cvvRequired: cvvRequired,
           initialCardNumber: initialCardNumber,
           initialCardHolderName: initialCardHolderName,

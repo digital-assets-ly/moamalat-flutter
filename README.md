@@ -4,7 +4,7 @@
 > an unofficial helper around the **Moamalat** payment gateway. It is **not**
 > affiliated with, endorsed by, or sponsored by Moamalat in any way. Moamalat is
 > not a Digital Assets product. The package wraps the legacy / outdated PayLink
-> REST endpoints (`PayByCard`, `CheckTxnStatus`) that the official Moamalat SDKs
+> REST endpoint (`PayByCard`) that the official Moamalat SDKs
 > targeted, and ships an optional Material card-payment widget on top.
 
 A Flutter package for accepting Moamalat card payments on iOS and Android, with
@@ -93,7 +93,7 @@ try {
   if (response.threeDSUrl != null && response.challengeRequired == true) {
     // Open the 3DS URL in a WebView yourself, then on the gateway redirect:
     final result = await service.handleThreeDSRedirect(redirectUri);
-    // result.success == true if both the redirect and CheckTxnStatus passed.
+    // result.success == true if the redirect was successful.
   }
 } on MoamalatPaymentError catch (e) {
   // network / decoding / non-2xx response
@@ -111,14 +111,10 @@ automatically pushes a full-screen WebView that:
 1. Loads the gateway's 3DS challenge URL (the bank's OTP page).
 2. Watches navigation events. When the gateway redirects back to your
    `returnUrl` (or the environment default) with a `Success` query parameter,
-   the WebView intercepts that navigation, parses the redirect, and calls
-   `CheckTxnStatus` to confirm the transaction was actually paid.
+   the WebView intercepts that navigation, parses the redirect, and closes.
 3. Closes itself with a `ThreeDSChallengeResult`. On success the form invokes
    `onSuccess`; on failure (or user back-button cancel) it invokes `onError` /
    `onCancel`.
-
-You can disable the post-3DS `CheckTxnStatus` call by passing
-`verifyTransactionStatusAfter3DS: false` to `MoamalatCardPaymentForm`.
 
 For immediate non-3DS responses, the form only treats the payment as approved
 when `Success == true` and `ActionCode == "00"`. Failed `PayByCard` responses

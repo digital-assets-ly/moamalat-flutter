@@ -40,13 +40,6 @@ class MoamalatCardPaymentForm extends StatefulWidget {
   final String cvvLabel;
   final String threeDSScreenTitle;
 
-  /// When `true` (default), the widget calls `CheckTxnStatus` after a
-  /// successful 3DS redirect to confirm `IsPaid == true` before invoking
-  /// `onSuccess`.
-  final bool verifyTransactionStatusAfter3DS;
-  final bool isNaps;
-  final bool isOoredoo;
-
   /// When `false`, the CVV field accepts an empty value. When non-empty it
   /// still has to be 3-4 digits. Defaults to `true`.
   final bool cvvRequired;
@@ -75,9 +68,6 @@ class MoamalatCardPaymentForm extends StatefulWidget {
     this.expiryDateLabel = 'YY/MM',
     this.cvvLabel = 'CVV',
     this.threeDSScreenTitle = '3-D Secure',
-    this.verifyTransactionStatusAfter3DS = false,
-    this.isNaps = true,
-    this.isOoredoo = false,
     this.cvvRequired = true,
     this.initialCardNumber,
     this.initialCardHolderName,
@@ -249,11 +239,7 @@ class _MoamalatCardPaymentFormState extends State<MoamalatCardPaymentForm> {
           ThreeDSWebViewScreen.route(
             service: service,
             threeDSUrl: threeDSUrl,
-            verifyTransactionStatus: widget.verifyTransactionStatusAfter3DS,
-            isNaps: widget.isNaps,
-            isOoredoo: widget.isOoredoo,
             title: widget.threeDSScreenTitle,
-            secureHash: widget.config.secureHash,
           ),
         );
         if (!mounted) return;

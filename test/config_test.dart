@@ -32,10 +32,6 @@ void main() {
         config.uriFor(ApiEndpoint.payByCard).toString(),
         'https://tnpg.moamalat.net/cube/PayLink.svc/api/PayByCard',
       );
-      expect(
-        config.uriFor(ApiEndpoint.checkTransactionStatus).toString(),
-        'https://tnpg.moamalat.net/cube/PayLink.svc/api/CheckTxnStatus',
-      );
     });
   });
 }

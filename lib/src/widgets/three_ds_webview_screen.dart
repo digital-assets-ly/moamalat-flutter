@@ -11,46 +11,26 @@ import '../services/payment_service.dart';
 class ThreeDSWebViewScreen extends StatefulWidget {
   final MoamalatPaymentService service;
   final String threeDSUrl;
-  final bool verifyTransactionStatus;
-  final bool isNaps;
-  final bool isOoredoo;
-  final String extraInfo;
   final String title;
-  final String secureHash;
 
   const ThreeDSWebViewScreen({
     super.key,
     required this.service,
     required this.threeDSUrl,
-    this.verifyTransactionStatus = true,
-    this.isNaps = true,
-    this.isOoredoo = false,
-    this.extraInfo = '',
     this.title = '3-D Secure',
-    required this.secureHash,
   });
 
   static Route<Object?> route({
     required MoamalatPaymentService service,
     required String threeDSUrl,
-    bool verifyTransactionStatus = true,
-    bool isNaps = true,
-    bool isOoredoo = false,
-    String extraInfo = '',
     String title = '3-D Secure',
-    required String secureHash,
   }) {
     return MaterialPageRoute<Object?>(
       fullscreenDialog: true,
       builder: (_) => ThreeDSWebViewScreen(
         service: service,
         threeDSUrl: threeDSUrl,
-        verifyTransactionStatus: verifyTransactionStatus,
-        isNaps: isNaps,
-        isOoredoo: isOoredoo,
-        extraInfo: extraInfo,
         title: title,
-        secureHash: secureHash,
       ),
     );
   }
@@ -99,11 +79,6 @@ class _ThreeDSWebViewScreenState extends State<ThreeDSWebViewScreen> {
             try {
               final result = await widget.service.handleThreeDSRedirect(
                 uri,
-                verifyTransactionStatus: widget.verifyTransactionStatus,
-                isNaps: widget.isNaps,
-                isOoredoo: widget.isOoredoo,
-                extraInfo: widget.extraInfo,
-                secureHash: widget.secureHash,
               );
               if (!mounted) return NavigationDecision.prevent;
               Navigator.of(context).pop(result);
