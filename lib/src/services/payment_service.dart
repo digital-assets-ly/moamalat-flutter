@@ -228,7 +228,7 @@ class MoamalatPaymentService {
             ),
           )
           .timeout(config.timeout);
-    } on Object catch (error) {
+    } catch (error) {
       throw MoamalatPaymentError(
         'Unable to complete PayByCard request',
         cause: error,
@@ -241,7 +241,7 @@ class MoamalatPaymentService {
     if (data is String) return data;
     try {
       return jsonEncode(data);
-    } on Object {
+    } catch(_) {
       return data.toString();
     }
   }
@@ -250,7 +250,7 @@ class MoamalatPaymentService {
     if (data is! String) return data;
     try {
       return jsonDecode(data);
-    } on Object catch (error) {
+    }  catch (error) {
       throw MoamalatPaymentError(
         'Error decoding PayByCard response',
         cause: error,

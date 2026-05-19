@@ -85,7 +85,7 @@ class PayByCardParameters {
   }
 
   Map<String, dynamic> toMap() {
-    final map = <String, dynamic>{
+    return <String, dynamic>{
       'AmountTrxn': amountTrxn,
       'CurrencyCodeTrxn': currencyCodeTrxn,
       if (merchantReference != null) 'MerchantReference': merchantReference,
@@ -104,17 +104,10 @@ class PayByCardParameters {
       'IsWebRequest': isWebRequest,
       'IsMobileSDK': isMobileSDK,
       'Success': false,
+      if(tokenCustomerSession !=null) 'TokenCustomerSession': tokenCustomerSession,
+      if(customerEmail != null) 'CustomerEmail': customerEmail,
+      if(tokenCustomerId != null) 'TokenCustomerId': tokenCustomerId,
     };
-    if (tokenCustomerSession != null) {
-      map['TokenCustomerSession'] = tokenCustomerSession;
-    }
-    if (customerEmail != null) {
-      map['CustomerEmail'] = customerEmail;
-    }
-    if (tokenCustomerId != null) {
-      map['TokenCustomerId'] = tokenCustomerId;
-    }
-    return map;
   }
 }
 
