@@ -63,7 +63,7 @@ class PayByCardParameters {
     String? tokenCustomerSession,
   }) {
     return PayByCardParameters(
-      amountTrxn: config.amount.toString(),
+      amountTrxn: config.amount.toInt().toString(),
       currencyCodeTrxn: config.currencyCode.toString(),
       merchantId: config.merchantId,
       terminalId: config.terminalId,
