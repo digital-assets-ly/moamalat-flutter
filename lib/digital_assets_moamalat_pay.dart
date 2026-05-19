@@ -22,3 +22,4 @@ export 'src/services/payment_service.dart' show MoamalatPaymentService;
 export 'src/widgets/card_payment_form.dart' show MoamalatCardPaymentForm;
 export 'src/widgets/show_payment_sheet.dart' show showMoamalatPaymentSheet;
 export 'src/widgets/input_formatters.dart';
+export 'src/widgets/three_ds_webview_screen.dart';
